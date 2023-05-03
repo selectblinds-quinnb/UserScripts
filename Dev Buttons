@@ -1,0 +1,136 @@
+// ==UserScript==
+// @name         Dev Buttons
+// @namespace    http://tampermonkey.net/
+// @version      0.1
+// @description  Add buttons to the site to add isTest cookie and go directly to product page!
+// @author       Quinn
+// @match        https://dev.selectblinds.com/*
+// @match        https://local.selectblinds.com/*
+// @match        https://stage.selectblinds.com/*
+// @match        https://www.selectblinds.com/*
+// @icon         https://www.google.com/s2/favicons?sz=64&domain=github.com
+// @grant        GM_addStyle
+// ==/UserScript==
+
+
+
+
+(function() {
+    'use strict';
+    GM_addStyle(".tm_overlay_btn { background-color: #74c2bb; border: 1px solid black;; text-align: center; display: none; margin: 4px 2px; cursor: pointer; width:125px; z-index:999999;}");
+    GM_addStyle(".tm_overlay_div { text-align: center; display: block; position:fixed; bottom:10px; right:10px; z-index:999999;}");
+    GM_addStyle(".tm_overlay_input { border: 1px solid black; text-align: center; display: none; margin: 4px 2px; width:125px; z-index:999999;}");
+    GM_addStyle(".tm_overlay_toggle_btn { background-color: #74c2bb; border: 1px solid black; font-weight: 1000; border-radius: 50%; text-align: center; display: block; z-index:999999; float:right; width:30px; height:30px;}");
+    AddOverlayButtons();
+})();
+
+function AddOverlayButtons() {
+    var body = document.getElementsByTagName("body")[0];
+    var div = document.createElement("div");
+    div.setAttribute("id", "tm_overlay_div");
+    div.classList.add("tm_overlay_div");
+    body.appendChild(div);
+    AddInput(div);
+    AddGoToProductsButton(div);
+    AddOpenInMgrButton(div)
+    addCookieButton(div);
+    AddToggleHideButton(div);
+}
+
+function AddInput(div){
+    var input = document.createElement("input");
+    input.classList.add("tm_overlay_input");
+    input.setAttribute("type", "number");
+    input.setAttribute("id", "tm_overlay_productId");
+    div.appendChild(input);
+}
+
+function AddGoToProductsButton(div){
+    var button = document.createElement("button");
+    button.classList.add("tm_overlay_btn");
+    button.setAttribute("id", "tm_overlay_button_product");
+    button.innerHTML = "Go to product";
+    button.addEventListener("click", function(){
+        var input = document.getElementById("tm_overlay_productId");
+        var value = input.value;
+        window.location.href = window.location.origin + "/products/detail/" + value;
+    });
+    div.appendChild(button);
+
+}
+
+function AddOpenInMgrButton(div){
+    var form = document.querySelector(".addProductForm");
+    if(form){
+        var button = document.createElement("button");
+        button.classList.add("tm_overlay_btn");
+        button.setAttribute("id", "tm_overlay_button_mgr");
+        var input = form.querySelector("#Id");
+            var value = input.value;
+        button.innerHTML = "Open "+ value + " in Mgr";
+        button.addEventListener("click", function(){
+            var subDom = getSubdomain();
+            if (subDom == 'www'){
+                window.open("https://mgr.selectblinds.com/Product/EditProduct/" + value);
+            }
+            else{
+                window.open("https://mgr-"+subDom+".selectblinds.com/Product/EditProduct/" + value);
+            }
+        });
+        div.appendChild(button);
+    }
+}
+
+function getSubdomain() {
+    var hostname = window.location.hostname;
+    var subdomain = hostname .split(".")[0];
+    return subdomain;
+}
+
+function addCookieButton(div) {
+    var button = document.createElement("button");
+    button.classList.add("tm_overlay_btn");
+    button.setAttribute("id", "tm_overlay_cookie_button");
+    button.innerHTML = checkIfCookieIsSet() ? "Remove isTest" : "Add isTest";
+    button.addEventListener("click", toggleCookie);
+    div.appendChild(button);
+}
+
+//check if cookie then toggle
+function toggleCookie() {
+    if (checkIfCookieIsSet()) {
+        document.cookie = "isTest=; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+        this.innerHTML = "Add isTest";
+    }
+    else {
+        document.cookie = "isTest=1;";
+        this.innerHTML = "Remove isTest";
+    }
+}
+
+function checkIfCookieIsSet() {
+    if (document.cookie.split(';').some((item) => item.trim().startsWith('isTest='))) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+function AddToggleHideButton(div){
+    var button = document.createElement("button");
+    button.classList.add("tm_overlay_toggle_btn");
+    button.setAttribute("id", "tm_overlay_toggle_hide_button");
+    button.innerHTML = "-";
+    button.addEventListener("click", function(){
+        var buttons = document.getElementsByClassName("tm_overlay_btn");
+        var inputs = document.getElementsByClassName("tm_overlay_input");
+        for (var i = 0; i < buttons.length; i++) {
+            buttons[i].style.display = buttons[i].style.display == "block" ? "none" : "block";
+        }
+        for (var x = 0; x < inputs.length; x++) {
+            inputs[x].style.display = inputs[x].style.display == "block" ? "none" : "block";
+        }
+        this.innerHTML = this.innerHTML === "-" ? "+" : "-";
+    });
+    div.appendChild(button);
+}
