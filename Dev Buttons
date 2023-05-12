@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Dev Buttons
 // @namespace    http://tampermonkey.net/
-// @version      0.3
+// @version      0.4
 // @description  Add buttons to the site to add isTest cookie and go directly to product page!
 // @author       Quinn
 // @match        https://dev.selectblinds.com/*
