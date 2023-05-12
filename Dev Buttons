@@ -1,25 +1,31 @@
 // ==UserScript==
 // @name         Dev Buttons
 // @namespace    http://tampermonkey.net/
-// @version      0.2
+// @version      0.3
 // @description  Add buttons to the site to add isTest cookie and go directly to product page!
 // @author       Quinn
 // @match        https://dev.selectblinds.com/*
 // @match        https://local.selectblinds.com/*
 // @match        https://stage.selectblinds.com/*
 // @match        https://www.selectblinds.com/*
+// @match        https://mgr-dev.selectblinds.com/*
+// @match        https://mgr-local.selectblinds.com/*
+// @match        https://mgr-stage.selectblinds.com/*
+// @match        https://mgr.selectblinds.com/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=github.com
 // @grant        GM_addStyle
 // ==/UserScript==
 
+let MgrProductPage = "/Product/EditProduct/";
+let MgrOrderPage = "/Order/Detail/";
+let SiteProductPage = "/products/detail/";
 
 
-
-(function() {
+(function () {
     'use strict';
     GM_addStyle(".tm_overlay_btn { background-color: #74c2bb; border: 1px solid black;; text-align: center; display: none; margin: 4px 2px; cursor: pointer; width:125px; z-index:999999;}");
     GM_addStyle(".tm_overlay_div { text-align: center; display: block; position:fixed; bottom:10px; right:10px; z-index:999999;}");
-    GM_addStyle(".tm_overlay_input { border: 1px solid black; text-align: center; display: none; margin: 4px 2px; width:125px; z-index:999999;}");
+    GM_addStyle(".tm_overlay_input { border: 1px solid black !important; padding: 6px; text-align: center; display: none; margin: 4px 2px; width:125px; z-index:999999; box-sizing: border-box;}");
     GM_addStyle(".tm_overlay_toggle_btn { background-color: #74c2bb; border: 1px solid black; font-weight: 1000; border-radius: 50%; text-align: center; display: block; z-index:999999; float:right; width:30px; height:30px;}");
     AddOverlayButtons();
 })();
@@ -30,28 +36,125 @@ function AddOverlayButtons() {
     div.setAttribute("id", "tm_overlay_div");
     div.classList.add("tm_overlay_div");
     body.appendChild(div);
+    var subDom = getSubdomain();
     AddInput(div);
-    AddGoToProductsButton(div);
-    AddOpenInMgrButton(div)
-    addCookieButton(div);
+    if (subDom.includes("mgr")) {
+        AddmgrButtonsButtons(div);
+    }
+    else {
+        AddSiteButtons(div);
+    }
     AddToggleHideButton(div);
 }
 
-function AddInput(div){
-    var input = document.createElement("input");
-    input.classList.add("tm_overlay_input");
-    input.setAttribute("type", "number");
-    input.setAttribute("id", "tm_overlay_productId");
-    div.appendChild(input);
+
+function AddToggleHideButton(div) {
+    var button = document.createElement("button");
+    button.classList.add("tm_overlay_toggle_btn");
+    button.setAttribute("id", "tm_overlay_toggle_hide_button");
+    button.innerHTML = "+";
+    button.addEventListener("click", function () {
+        var buttons = document.getElementsByClassName("tm_overlay_btn");
+        var inputs = document.getElementsByClassName("tm_overlay_input");
+        for (var i = 0; i < buttons.length; i++) {
+            buttons[i].style.display = buttons[i].style.display == "block" ? "none" : "block";
+        }
+        for (var x = 0; x < inputs.length; x++) {
+            inputs[x].style.display = inputs[x].style.display == "block" ? "none" : "block";
+        }
+        this.innerHTML = this.innerHTML === "-" ? "+" : "-";
+    });
+    div.appendChild(button);
 }
 
-function AddGoToProductsButton(div){
+
+//#region Mgr
+function AddmgrButtonsButtons(div) {
+    AddGoToProductMgrButton(div);
+    AddGoToOrderMgrButtons(div);
+    AddOpenInSiteButton(div);
+}
+
+function AddGoToProductMgrButton(div) {
     var button = document.createElement("button");
     button.classList.add("tm_overlay_btn");
     button.setAttribute("id", "tm_overlay_button_product");
     button.innerHTML = "Go to product";
-    button.addEventListener("click", function(){
-        var input = document.getElementById("tm_overlay_productId");
+    button.addEventListener("click", function () {
+        var input = document.getElementById("tm_overlay_input");
+        var value = input.value;
+        window.location.href = window.location.origin + "/Product/EditProduct/" + value;
+    });
+    div.appendChild(button);
+}
+
+//write a function navigate me to the lage Order/Detail/{id} where id is equal to the value of the input
+function AddGoToOrderMgrButtons(div) {
+    var button = document.createElement("button");
+    button.classList.add("tm_overlay_btn");
+    button.setAttribute("id", "tm_overlay_button_order");
+    button.innerHTML = "Go to order";
+    button.addEventListener("click", function () {
+        var input = document.getElementById("tm_overlay_input");
+        var value = input.value;
+        window.location.href = window.location.origin + "/Order/Detail/" + value;
+    });
+    div.appendChild(button);
+}
+
+function AddOpenInSiteButton(div) {
+    var url = window.location.href;
+    var value = url.includes("/Order/Detail/") ? url.substring(url.lastIndexOf("/") + 1) : null;
+    if (value) {
+        var button = document.createElement("button");
+        button.classList.add("tm_overlay_btn");
+        button.setAttribute("id", "tm_overlay_button_site");
+        button.innerHTML = "Open " + value + " on site";
+        button.addEventListener("click", function () {
+
+            window.open(GetSiteUrl() + SiteProductPage + value);
+        });
+        div.appendChild(button);
+    }
+}
+//#endregion
+
+function GetMgrUrl() {
+    var subDom = getSubdomain();
+    return subDom == 'www' ? "https://mgr.selectblinds.com" : "https://mgr-" + subDom + ".selectblinds.com";
+}
+
+function GetSiteUrl() {
+    var subDom = getSubdomain().replace("mgr", "").replace("-", "");
+    return subDom == 'mgr' ? "https://www.selectblinds.com" : "https://" + subDom + ".selectblinds.com";
+}
+
+
+
+
+//#region Site
+function AddSiteButtons(div) {
+    AddGoToProductButton(div);
+    AddOpenInMgrButton(div)
+    addCookieButton(div);
+    AddOpenOrderInMgrButton(div);
+}
+
+function AddInput(div) {
+    var input = document.createElement("input");
+    input.classList.add("tm_overlay_input");
+    input.setAttribute("onkeypress", "return event.charCode >= 48 && event.charCode <= 57");
+    input.setAttribute("id", "tm_overlay_input");
+    div.appendChild(input);
+}
+
+function AddGoToProductButton(div) {
+    var button = document.createElement("button");
+    button.classList.add("tm_overlay_btn");
+    button.setAttribute("id", "tm_overlay_button_product");
+    button.innerHTML = "Go to product";
+    button.addEventListener("click", function () {
+        var input = document.getElementById("tm_overlay_input");
         var value = input.value;
         window.location.href = window.location.origin + "/products/detail/" + value;
     });
@@ -59,23 +162,17 @@ function AddGoToProductsButton(div){
 
 }
 
-function AddOpenInMgrButton(div){
+function AddOpenInMgrButton(div) {
     var form = document.querySelector(".addProductForm");
-    if(form){
+    if (form) {
         var button = document.createElement("button");
         button.classList.add("tm_overlay_btn");
         button.setAttribute("id", "tm_overlay_button_mgr");
         var input = form.querySelector("#Id");
-            var value = input.value;
-        button.innerHTML = "Open "+ value + " in Mgr";
-        button.addEventListener("click", function(){
-            var subDom = getSubdomain();
-            if (subDom == 'www'){
-                window.open("https://mgr.selectblinds.com/Product/EditProduct/" + value);
-            }
-            else{
-                window.open("https://mgr-"+subDom+".selectblinds.com/Product/EditProduct/" + value);
-            }
+        var value = input.value;
+        button.innerHTML = "Open " + value + " in Mgr";
+        button.addEventListener("click", function () {
+            window.open(GetMgrUrl() + "/Product/EditProduct/" + value);
         });
         div.appendChild(button);
     }
@@ -83,7 +180,7 @@ function AddOpenInMgrButton(div){
 
 function getSubdomain() {
     var hostname = window.location.hostname;
-    var subdomain = hostname .split(".")[0];
+    var subdomain = hostname.split(".")[0];
     return subdomain;
 }
 
@@ -116,21 +213,21 @@ function checkIfCookieIsSet() {
     }
 }
 
-function AddToggleHideButton(div){
-    var button = document.createElement("button");
-    button.classList.add("tm_overlay_toggle_btn");
-    button.setAttribute("id", "tm_overlay_toggle_hide_button");
-    button.innerHTML = "-";
-    button.addEventListener("click", function(){
-        var buttons = document.getElementsByClassName("tm_overlay_btn");
-        var inputs = document.getElementsByClassName("tm_overlay_input");
-        for (var i = 0; i < buttons.length; i++) {
-            buttons[i].style.display = buttons[i].style.display == "block" ? "none" : "block";
+//check for a cookie called OrderID and if it exists then add a button to open that order in mgr
+function AddOpenOrderInMgrButton(div) {
+    var value = document.cookie.split(';').some((item) => item.trim().startsWith('OrderID='));
+    if (value) {
+        var button = document.createElement("button");
+        button.classList.add("tm_overlay_btn");
+        button.setAttribute("id", "tm_overlay_button_order");
+        button.innerHTML = value;
+        button.title = "Open orderID" + value + " in Mgr";
+        button.addEventListener("click", function () {
+            var input = document.getElementById("tm_overlay_input");
+            window.open(GetMgrUrl() + "/Order/Detail/" + value);
         }
-        for (var x = 0; x < inputs.length; x++) {
-            inputs[x].style.display = inputs[x].style.display == "block" ? "none" : "block";
-        }
-        this.innerHTML = this.innerHTML === "-" ? "+" : "-";
-    });
-    div.appendChild(button);
+        );
+        div.appendChild(button);
+    }
 }
+//#endregion
