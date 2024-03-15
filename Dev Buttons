@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Dev Buttons
 // @namespace    http://tampermonkey.net/
-// @version      0.4
+// @version      1.0
 // @description  Add buttons to the site to add isTest cookie and go directly to product page!
 // @author       Quinn
 // @match        https://dev.selectblinds.com/*
@@ -21,12 +21,20 @@ let MgrOrderPage = "/Order/Detail/";
 let SiteProductPage = "/products/detail/";
 
 
+
+
 (function () {
     'use strict';
-    GM_addStyle(".tm_overlay_btn { background-color: #74c2bb; border: 1px solid black;; text-align: center; display: none; margin: 4px 2px; cursor: pointer; width:125px; z-index:999999;}");
-    GM_addStyle(".tm_overlay_div { text-align: center; display: block; position:fixed; bottom:10px; right:10px; z-index:999999;}");
-    GM_addStyle(".tm_overlay_input { border: 1px solid black !important; padding: 6px; text-align: center; display: none; margin: 4px 2px; width:125px; z-index:999999; box-sizing: border-box;}");
-    GM_addStyle(".tm_overlay_toggle_btn { background-color: #74c2bb; border: 1px solid black; font-weight: 1000; border-radius: 50%; text-align: center; display: block; z-index:999999; float:right; width:30px; height:30px;}");
+    GM_addStyle(".tm_overlay_btn, .tm_flag_btn { display: none; margin-top:5px; width: 150px; padding: 7px 0; border-radius: 40px; background-color: #42b3d5; color: #181712 !important; transition: 0.3s; font-size: 16px; font-weight: 500; line-height: 15px; text-align: center; -webkit-appearance: none; text-decoration: none !important; outline: none; cursor: pointer; font-family:montserrat-medium,Verdana,sans-serif!important;}");
+    
+    GM_addStyle(".tm_overlay_div { text-align: center ; display: flex; flex-direction: column; position:fixed; bottom:10px; right:10px; z-index:999999;}");
+    GM_addStyle(".tm_overlay_left_div { position: absolute; right:35px; bottom:0px;}");
+    GM_addStyle(".tm_overlay_right_div { position: absolute; right:0px; bottom:0px;  width:30px; }");
+    GM_addStyle(".tm_overlay_input {  display: none;  width: 100%; border: 1px solid #8e9db7; border-radius: 25px; background-color: #f4f5f8; padding: 8px 35px; outline: none; box-sizing: border-box; -webkit-appearance: none; font-family: \x22montserrat-medium\x22,Verdana,sans-serif;");
+    GM_addStyle(".tm_overlay_toggle_btn) {display: Block;}");
+    GM_addStyle(".tm_overlay_menu_btn {display: none; }");
+    GM_addStyle(".tm_overlay_toggle_btn, .tm_overlay_menu_btn {  background-color: #42b3d5; padding-left: 4px; padding-top: 0px; margin-top:5px; border: 1px solid black; font-weight: 1000; border-radius: 50%; text-align: center; z-index:999999; float:right; width:30px; height:30px;}");
+
     AddOverlayButtons();
 })();
 
@@ -36,35 +44,117 @@ function AddOverlayButtons() {
     div.setAttribute("id", "tm_overlay_div");
     div.classList.add("tm_overlay_div");
     body.appendChild(div);
+    var leftdiv = document.createElement("div");
+    leftdiv.classList.add("tm_overlay_left_div");
+    var rightdiv = document.createElement("div");
+    rightdiv.classList.add("tm_overlay_right_div");
+    div.appendChild(leftdiv);
+    div.appendChild(rightdiv);
+
     var subDom = getSubdomain();
-    AddInput(div);
+    AddInput(leftdiv);
     if (subDom.includes("mgr")) {
-        AddmgrButtonsButtons(div);
+        AddmgrButtonsButtons(leftdiv);
     }
     else {
-        AddSiteButtons(div);
+        AddSiteButtons(leftdiv);
+        AddFlagButtons(leftdiv)
+        AddFlagMenuButton(rightdiv);
     }
-    AddToggleHideButton(div);
+    AddToggleHideButton(rightdiv);
 }
+
+function AddFlagButtons(div) {
+    var flags = getFlags();
+    if (flags) {
+        for (const [key, value] of Object.entries(flags)) {
+            var button = document.createElement("button");
+            button.classList.add("tm_flag_btn");
+            button.setAttribute("id", "tm_flag_btn_" + key);
+            button.innerHTML = key + ": " + value;
+            button.style.backgroundColor = value ? "#74c2bb" : "#f57915";
+            button.addEventListener("click", function () {
+                flags[key] = !flags[key];
+                document.cookie = "SelectFlags=" + JSON.stringify(flags);
+                location.reload();
+            });
+            div.appendChild(button);
+        }
+    }
+}
+
+function getFlags() {
+    var name = "SelectFlags=";
+    var decodedCookie = decodeURIComponent(document.cookie);
+    var ca = decodedCookie.split(';');
+    for (var i = 0; i < ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0) == ' ') {
+            c = c.substring(1);
+        }
+        if (c.indexOf(name) == 0) {
+            return JSON.parse(c.substring(name.length, c.length));
+        }
+    }
+    return null;
+}
+
+function AddFlagMenuButton(div) {
+    var button = document.createElement("button");
+    button.classList.add("tm_overlay_menu_btn");
+    button.setAttribute("id", "tm_overlay_toggle_flags_button");
+    button.innerHTML = "🏴";
+    button.addEventListener("click", function () {
+        toggleVisibility("tm_overlay_btn");
+        toggleVisibility("tm_overlay_input");
+        toggleVisibility("tm_flag_btn");
+        this.innerHTML = this.innerHTML === "🏳️" ? "🏴" : "🏳️";
+    });
+    div.appendChild(button);
+}
+
+
 
 
 function AddToggleHideButton(div) {
     var button = document.createElement("button");
     button.classList.add("tm_overlay_toggle_btn");
     button.setAttribute("id", "tm_overlay_toggle_hide_button");
-    button.innerHTML = "+";
+    button.innerHTML = "😊";
     button.addEventListener("click", function () {
-        var buttons = document.getElementsByClassName("tm_overlay_btn");
-        var inputs = document.getElementsByClassName("tm_overlay_input");
-        for (var i = 0; i < buttons.length; i++) {
-            buttons[i].style.display = buttons[i].style.display == "block" ? "none" : "block";
+        if(this.innerHTML === "🤪"){
+            this.innerHTML = "😊";
+            hideElementsClassName("tm_overlay_btn");
+            hideElementsClassName("tm_overlay_input");
+            hideElementsClassName("tm_overlay_menu_btn");
+            hideElementsClassName("tm_flag_btn");
         }
-        for (var x = 0; x < inputs.length; x++) {
-            inputs[x].style.display = inputs[x].style.display == "block" ? "none" : "block";
+        else{
+            this.innerHTML = "🤪";
+            toggleVisibility("tm_overlay_btn");
+            toggleVisibility("tm_overlay_input");
+            toggleVisibility("tm_overlay_menu_btn");
         }
-        this.innerHTML = this.innerHTML === "-" ? "+" : "-";
+        
     });
     div.appendChild(button);
+}
+
+//function to show/hid based on class
+function toggleVisibility(className) {
+    var elements = document.getElementsByClassName(className);
+    for (var i = 0; i < elements.length; i++) {
+        elements[i].style.display = elements[i].style.display == "block" ? "none" : "block";
+    }
+}
+
+
+
+function hideElementsClassName(className) {
+    var elements = document.getElementsByClassName(className);
+    for (var i = 0; i < elements.length; i++) {
+        elements[i].style.display = "none";
+    }
 }
 
 
