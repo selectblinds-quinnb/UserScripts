@@ -1,13 +1,15 @@
 // ==UserScript==
 // @name         Dev Buttons
 // @namespace    http://tampermonkey.net/
-// @version      1.1
+// @version      1.2
 // @description  Add buttons to the site to add isTest cookie and go directly to product page!
 // @author       Quinn
 // @match        https://dev.selectblinds.com/*
 // @match        https://local.selectblinds.com/*
 // @match        https://stage.selectblinds.com/*
 // @match        https://www.selectblinds.com/*
+// @match        https://web1.selectblinds.com/*
+// @match        https://web2.selectblinds.com/*
 // @match        https://mgr-dev.selectblinds.com/*
 // @match        https://mgr-local.selectblinds.com/*
 // @match        https://mgr-stage.selectblinds.com/*
@@ -26,14 +28,14 @@ let SiteProductPage = "/products/detail/";
 (function () {
     'use strict';
     GM_addStyle(".tm_overlay_btn, .tm_flag_btn { display: none; margin-top:5px; width: 150px; padding: 7px 0; border-radius: 40px; background-color: #42b3d5; color: #181712 !important; transition: 0.3s; font-size: 16px; font-weight: 500; line-height: 15px; text-align: center; -webkit-appearance: none; text-decoration: none !important; outline: none; cursor: pointer; font-family:montserrat-medium,Verdana,sans-serif!important;}");
-    
-    GM_addStyle(".tm_overlay_div { text-align: center ; display: flex; flex-direction: column; position:fixed; bottom:10px; right:10px; z-index:999999;}");
-    GM_addStyle(".tm_overlay_left_div { position: absolute; right:35px; bottom:0px;}");
-    GM_addStyle(".tm_overlay_right_div { position: absolute; right:0px; bottom:0px;  width:30px; }");
+    GM_addStyle(".tm_overlay_menu_link {  background-color: #42b3d5;  padding-top: 4px; margin-top:5px; border: 1px solid black; font-weight: 1000; border-radius: 50%; text-align: center; z-index:999999; float:right; width:28px; height:23px; display: none;}");
+    GM_addStyle(".tm_overlay_div { text-align: center ; display: flex; flex-direction: column; position:fixed; bottom:10px; left:10px; z-index:999999;}");
+    GM_addStyle(".tm_overlay_left_div { position: absolute; left:35px; bottom:0px;}");
+    GM_addStyle(".tm_overlay_right_div { position: absolute; left:0px; bottom:0px;  width:30px; }");
     GM_addStyle(".tm_overlay_input {  display: none;  width: 100%; border: 1px solid #8e9db7; border-radius: 25px; background-color: #f4f5f8; padding: 8px 35px; outline: none; box-sizing: border-box; -webkit-appearance: none; font-family: \x22montserrat-medium\x22,Verdana,sans-serif;");
     GM_addStyle(".tm_overlay_toggle_btn) {display: Block;}");
     GM_addStyle(".tm_overlay_menu_btn {display: none; }");
-    GM_addStyle(".tm_overlay_toggle_btn, .tm_overlay_menu_btn {  background-color: #42b3d5; padding-left: 4px; padding-top: 0px; margin-top:5px; border: 1px solid black; font-weight: 1000; border-radius: 50%; text-align: center; z-index:999999; float:right; width:30px; height:30px;}");
+    GM_addStyle(".tm_overlay_toggle_btn, .tm_overlay_menu_btn {  background-color: #42b3d5; padding-left: 5px; padding-top: 0px; margin-top:5px; border: 1px solid black; font-weight: 1000; border-radius: 50%; text-align: center; z-index:999999; float:right; width:30px; height:30px;}");
 
     AddOverlayButtons();
 })();
@@ -55,6 +57,10 @@ function AddOverlayButtons() {
     AddInput(leftdiv);
     if (subDom.includes("mgr")) {
         AddmgrButtonsButtons(leftdiv);
+        if(NotProd(subDom)){
+            AddCreatNewOrderButton(rightdiv);
+            AddNewItemButton(rightdiv);
+        }
     }
     else {
         AddSiteButtons(leftdiv);
@@ -62,6 +68,11 @@ function AddOverlayButtons() {
         AddFlagMenuButton(rightdiv);
     }
     AddToggleHideButton(rightdiv);
+}
+
+
+function NotProd(subDom) {
+    return subDom.includes("-dev") || subDom.includes("-local") || subDom.includes("-stage")
 }
 
 function AddFlagButtons(div) {
@@ -75,7 +86,7 @@ function AddFlagButtons(div) {
             button.style.backgroundColor = value ? "#74c2bb" : "#f57915";
             button.addEventListener("click", function () {
                 flags[key] = !flags[key];
-                document.cookie = "SelectFlags=" + JSON.stringify(flags);
+                document.cookie = "SelectFlags=" + JSON.stringify(flags) + "; path=/";
                 location.reload();
             });
             div.appendChild(button);
@@ -127,6 +138,7 @@ function AddToggleHideButton(div) {
             hideElementsClassName("tm_overlay_btn");
             hideElementsClassName("tm_overlay_input");
             hideElementsClassName("tm_overlay_menu_btn");
+            hideElementsClassName("tm_overlay_menu_link");
             hideElementsClassName("tm_flag_btn");
         }
         else{
@@ -134,6 +146,7 @@ function AddToggleHideButton(div) {
             toggleVisibility("tm_overlay_btn");
             toggleVisibility("tm_overlay_input");
             toggleVisibility("tm_overlay_menu_btn");
+            toggleVisibility("tm_overlay_menu_link");
         }
         
     });
@@ -178,7 +191,7 @@ function AddGoToProductMgrButton(div) {
     div.appendChild(button);
 }
 
-//write a function navigate me to the lage Order/Detail/{id} where id is equal to the value of the input
+
 function AddGoToOrderMgrButtons(div) {
     var button = document.createElement("button");
     button.classList.add("tm_overlay_btn");
@@ -192,9 +205,23 @@ function AddGoToOrderMgrButtons(div) {
     div.appendChild(button);
 }
 
+
+
+function AddCreatNewOrderButton(div) {
+    var button = document.createElement("button");
+    button.classList.add("tm_overlay_menu_btn");
+    button.setAttribute("id", "tm_overlay_new_order_button");
+    button.innerHTML = "🛍️";
+    button.addEventListener("click", function () {
+        window.location.href = window.location.origin + "/Order/CreateNewOrder?UserId=942429";
+    });
+    div.appendChild(button);
+}
+
+
 function AddOpenInSiteButton(div) {
     var url = window.location.href;
-    var value = url.includes("/Order/Detail/") ? url.substring(url.lastIndexOf("/") + 1) : null;
+    var value = url.includes("/Product/EditProduct/") ? url.substring(url.lastIndexOf("/") + 1) : null;
     if (value) {
         var button = document.createElement("button");
         button.classList.add("tm_overlay_btn");
@@ -204,6 +231,28 @@ function AddOpenInSiteButton(div) {
 
             window.open(GetSiteUrl() + SiteProductPage + value);
         });
+        div.appendChild(button);
+    }
+}
+
+function AddNewItemButton(div) {
+    var url = window.location.href;
+    if (url.includes("/Order/Detail/") ) {
+        var button = document.createElement("a");
+        button.classList.add("tm_overlay_menu_link");
+        button.setAttribute("id", "tm_overlay_button_addItem");
+        button.innerHTML = "➕";
+        button.title = "Add pid 882 to order";
+        button.setAttribute("data-ajax", "true");
+        button.setAttribute("data-ajax-begin", "loadingOverlay($('#main'));");
+        button.setAttribute("data-ajax-complete", "initializeProductDetails();");
+        button.setAttribute("data-ajax-method", "GET");
+        button.setAttribute("data-ajax-mode", "replace");
+        button.setAttribute("data-ajax-success", "createProductEditModal('Edit Product');");
+        button.setAttribute("data-ajax-update", "#modalTemplate");
+        var order = url.includes("/Order/Detail/") ? url.substring(url.lastIndexOf("/") + 1) : null;
+        var orderVersionId = document.querySelector("#versionAccordion li div").getAttribute("orderversionid");
+        button.setAttribute("href", "/ProductSearch/Detail/882?OrderId="+order+"&OrderVersionId="+orderVersionId+"&LineItemForProductToReplace=0&Width=24&Height=36&CreditCodeAction=AddNewProduct");
         div.appendChild(button);
     }
 }
