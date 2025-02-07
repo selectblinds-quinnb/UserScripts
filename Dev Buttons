@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Dev Buttons
 // @namespace    http://tampermonkey.net/
-// @version      1.2
+// @version      1.3
 // @description  Add buttons to the site to add isTest cookie and go directly to product page!
 // @author       Quinn
 // @match        https://dev.selectblinds.com/*
@@ -29,7 +29,7 @@ let SiteProductPage = "/products/detail/";
     'use strict';
     GM_addStyle(".tm_overlay_btn, .tm_flag_btn { display: none; margin-top:5px; width: 150px; padding: 7px 0; border-radius: 40px; background-color: #42b3d5; color: #181712 !important; transition: 0.3s; font-size: 16px; font-weight: 500; line-height: 15px; text-align: center; -webkit-appearance: none; text-decoration: none !important; outline: none; cursor: pointer; font-family:montserrat-medium,Verdana,sans-serif!important;}");
     GM_addStyle(".tm_overlay_menu_link {  background-color: #42b3d5;  padding-top: 4px; margin-top:5px; border: 1px solid black; font-weight: 1000; border-radius: 50%; text-align: center; z-index:999999; float:right; width:28px; height:23px; display: none;}");
-    GM_addStyle(".tm_overlay_div { text-align: center ; display: flex; flex-direction: column; position:fixed; bottom:10px; left:10px; z-index:999999;}");
+    GM_addStyle(".tm_overlay_div { text-align: center ; display: flex; flex-direction: column; position:fixed; bottom:25px; left:10px; z-index:999999;}");
     GM_addStyle(".tm_overlay_left_div { position: absolute; left:35px; bottom:0px;}");
     GM_addStyle(".tm_overlay_right_div { position: absolute; left:0px; bottom:0px;  width:30px; }");
     GM_addStyle(".tm_overlay_input {  display: none;  width: 100%; border: 1px solid #8e9db7; border-radius: 25px; background-color: #f4f5f8; padding: 8px 35px; outline: none; box-sizing: border-box; -webkit-appearance: none; font-family: \x22montserrat-medium\x22,Verdana,sans-serif;");
