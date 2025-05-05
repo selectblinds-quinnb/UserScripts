@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Pim Buttons
 // @namespace    http://tampermonkey.net/
-// @version      0.92
+// @version      0.93
 // @description  Add buttons to navigate products and beetween pim and sites
 // @author       Quinn
 // @match        https://productcatalogue.hdecom.com/*
@@ -14,7 +14,8 @@
 
 let pimProductPage = "/Product/EditProduct/";
 let SiteProductPage = "/products/";
-let pimSite = isDev() ? "app-productcatalogueweb-service-chn-dev.azurewebsites.net" : "https://productcatalogue.hdecom.com";
+let pimDev = 'https://app-productcatalogueweb-service-chn-dev.azurewebsites.net'
+let pimSite = isDev() ? pimDev : "https://productcatalogue.hdecom.com";
 let ieUrl = isDevSite("https://shop.blinds-2go.ie/");
 let tuissUrl = isDevSite("https://gardinerbytuiss.dk/");
 let selectBlindsUrl = isDevSite("https://www.selectblinds.com/");
@@ -24,7 +25,7 @@ function isDevSite(site){
 }
 
 function isDev() {
-    return window.location.href.includes("app-productcatalogueweb-service-chn-dev.azurewebsites.net") || window.location.href.includes("https://tuiss-denmark-dev.myshopify.com/");
+    return window.location.href.includes(pimDev) || window.location.href.includes("https://tuiss-denmark-dev.myshopify.com/");
 }
 
 (function () {
