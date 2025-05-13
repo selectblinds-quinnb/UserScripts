@@ -1,11 +1,12 @@
 // ==UserScript==
 // @name         Pim Buttons
 // @namespace    http://tampermonkey.net/
-// @version      0.93
+// @version      0.95
 // @description  Add buttons to navigate products and beetween pim and sites
 // @author       Quinn
 // @match        https://productcatalogue.hdecom.com/*
 // @match        https://shop.blinds-2go.ie/*
+// @match        https://www.blinds-2go.ie/*
 // @match        https://gardinerbytuiss.dk/*
 // @match        https://app-productcatalogueweb-service-chn-dev.azurewebsites.net/*
 // @match        https://tuiss-denmark-dev.myshopify.com/*
